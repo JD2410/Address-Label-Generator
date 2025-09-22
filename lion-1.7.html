@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="jquery-3.5.1.min.js"></script>
+    <style>
+        /*Date selection*/
+        #dateselection {
+            display: none;
+        }
+
+        #dateselection.notFirstTime.showDateDropdowns {
+            display: block;
+            z-index: 3;
+        }
+
+        #dateselection.notFirstTime button {
+            display: none;
+        }
+
+        #dateselection.notFirstTime {
+            position: absolute;
+            position: fixed;
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 1px 1px 5px rgba(1, 1, 1, 0.37);
+            right: 0;
+            z-index: 1;
+            padding: 16px 20px;
+            margin-right: 6px;
+            margin-top: 6px;
+        }
+
+        #dateselection.notFirstTime h1,
+        #dateselection.notFirstTime h3 {
+            display: none;
+        }
+
+        .image {
+            position: absolute;
+            width: 109px;
+            left: 7px;
+            top: 7px;
+            background: #fff;
+            height: 36px;
+            overflow: hidden;
+            padding-top: 3px;
+            padding: 4px 1px 0px 1px;
+            border-radius: 3px;
+            box-sizing: border-box;
+        }
+
+        .image img {
+            width: 100%;
+            height: auto;
+        }
+
+        body {
+            margin: 0;
+            font-family: arial, sans-serif;
+            background-color: #e7e7e7;
+        }
+
+        body.interface {
+            background-color: #fff;
+        }
+
+        .controls {
+            width: 400px;
+            border-radius: 7px;
+            box-shadow: 0px 0 6px 4px rgba(0, 0, 0, 0.05);
+            padding: 32px;
+            position: absolute;
+            text-align: center;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+        }
+
+        .menu-container {
+            display: none;
+        }
+
+        h1 {
+            font-size: 24px;
+        }
+
+        h3 {
+            font-size: 16px;
+            font-weight: normal;
+            padding-bottom: 21px;
+        }
+
+        #selectFile, #dateselectionbtn {
+            background: #1b64d8;
+            color: #fff;
+            font-size: 16px;
+            border: none;
+            padding: 12px 27px;
+            border-radius: 138px;
+            transition: all 0.2s;
+            display: block;
+            margin: 12px auto 0px;
+        }
+
+        #selectFile:hover, #dateselectionbtn:hover {
+            background: #4285f4;
+        }
+
+        input[type="file"] {
+            opacity: 0;
+            position: absolute;
+        }
+
+        #viewfile {
+            background: #ffa41b;
+            color: #fff;
+            font-size: 14px;
+            border: none;
+            padding: 9px 21px;
+            border-radius: 138px;
+            transition: all 0.2s;
+            display: block;
+            margin: 12px auto 0px;
+        }
+        #viewfile:hover {
+            background: #f4ad42;
+        }
+
+        .disabledButton {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+
+
+        /* After Initial Selection */
+        .control-after {
+            background: #4d4d4d;
+            text-align: center;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        .control-after h1 {
+            display: none;
+        }
+
+        .control-after h3 {
+            text-align: center;
+            margin: auto;
+            padding: 0;
+            font-size: 14px;
+            width: 178px;
+        }
+
+        .control-after .upload-window {
+            position: fixed;
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 1px 1px 5px rgba(1, 1, 1, 0.37);
+            right: 0;
+            z-index: 1;
+            opacity: 0;
+            /* transition: opacity 0.1s; */
+            padding: 16px 20px;
+            margin-right: 6px;
+            margin-top: 6px;
+        }
+
+        .control-after .open-upload-window {
+            opacity: 1;
+        }
+
+        .control-after .menu-container {
+            display: block;
+            height: 50px;
+        }
+
+        .menu {
+            margin: auto;
+            padding: 9px 0px 0px 0;
+        }
+
+        .menu li {
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .menu li a {
+            padding: 6px 15px;
+            display: block;
+            color: #c4c4c4;
+            text-decoration: none;
+            font-size: 14px;
+            border: 1px solid;
+            border-radius: 32px;
+            margin: 0px 6px;
+            transition: all 0.3s;
+        }
+
+        .menu li a:hover {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .menu li a:active {
+            background-color: #fff;
+            color: #4d4d4d;
+        }
+
+        .menu li.active a {
+            background-color: #fff;
+            color: #4d4d4d;
+        }
+
+        #currentFile {
+            font-size: 14px;
+            padding: 10px 18px 10px 18px;
+            display: inline-block;
+            margin-top: 8px;
+            background: #4285f4;
+            border-radius: 30px;
+            color: #fff;
+        }
+
+        div#openDateFilter {
+            right: 126px;
+        }
+
+        #openDropdown,
+        #openDateFilter {
+            background: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+            position: absolute;
+            top: 7px;
+            right: 9px;
+            height: 36px;
+            width: 109px;
+            line-height: 37px;
+        }
+
+        #openDropdown:hover,
+        #openDateFilter:hover,
+        #openDateFilter.openDateFilteron {
+            color: #fff;
+            background: #14abd8;
+        }
+
+        /* Master Table */
+        .function-container {
+            padding: 82px 20px 20px 20px;
+        }
+
+        #labelListing {
+            padding-top: 37px;
+        }
+
+        #master table {
+            font-size: 14px;
+            white-space: nowrap;
+            text-align: left;
+        }
+
+        #master table tr {
+            border-collapse: collapse;
+        }
+
+        #master table td {
+            padding: 1px 5px;
+            vertical-align: top;
+        }
+
+        #master table td:first-child,
+        #master table th:first-child {
+            border-left: 1px solid silver;
+        }
+
+        #master table th {
+            padding: 7px 5px;
+            vertical-align: top;
+        }
+
+        #master table thead th {
+            border-top: 1px solid silver;
+        }
+
+        #master table td,
+        #master table th {
+            border-right: 1px solid silver;
+            border-bottom: 1px solid silver;
+        }
+
+        /* Base item Table */
+        #baseItem {
+            padding: 70px 20px 20px 20px;
+        }
+
+        #baseItem table {
+            font-size: 14px;
+            white-space: nowrap;
+            text-align: left;
+        }
+
+        #baseItem table tr {
+            border-collapse: collapse;
+        }
+
+        #baseItem table td {
+            padding: 1px 5px;
+            vertical-align: top;
+        }
+
+        #baseItem table td:first-child,
+        #baseItem table th:first-child {
+            border-left: 1px solid silver;
+        }
+
+        #baseItem table th {
+            padding: 7px 5px;
+            vertical-align: top;
+        }
+
+        #baseItem table thead th {
+            border-top: 1px solid silver;
+        }
+
+        #baseItem table td,
+        #baseItem table th {
+            border-right: 1px solid silver;
+            border-bottom: 1px solid silver;
+        }
+
+        /* Labels*/
+        .label {
+            display: inline-table;
+            vertical-align: top;
+            width: 6.3cm;
+            border: 2px solid #ececec;
+            font-size: 14px;
+            height: 3.9cm;
+            margin: 0 0.3cm 0 0;
+        }
+
+        .label:nth-child(3n) {
+            margin: 0;
+        }
+
+        .inner-label {
+            display: table-cell;
+            vertical-align: middle;
+            padding-left: 0.6cm;
+        }
+
+        .container {
+            width: 21cm;
+            padding: 1.4cm 0 0 0.9cm;
+            box-sizing: content-box;
+            font-size: 0px;
+        }
+
+        span {
+            display: block;
+        }
+
+        /* Item Summary */
+        #itemSumm table tr {
+            border-collapse: collapse;
+        }
+
+        #itemSumm table td {
+            padding: 1px 5px;
+            vertical-align: top;
+        }
+
+        #itemSumm table td:first-child,
+        #itemSumm table th:first-child {
+            border-left: 1px solid silver;
+        }
+
+        #itemSumm table th {
+            padding: 7px 5px;
+            vertical-align: top;
+        }
+
+        #itemSumm table thead th {
+            border-top: 1px solid silver;
+        }
+
+        #itemSumm table td,
+        #itemSumm table th {
+            border-right: 1px solid silver;
+            border-bottom: 1px solid silver;
+        }
+
+
+        /* Master Table */
+        #orderSummary .order {
+            page-break-inside: avoid;
+        }
+
+        #orderSummaryPage {
+            width: 29.7cm;
+            padding: 1cm;
+            box-sizing: content-box;
+        }
+
+        #orderSummary .address {
+            font-size: 14px;
+            line-height: 21px;
+            display: inline-block;
+            vertical-align: top;
+            width: 200px;
+            padding-bottom: 10px;
+        }
+
+        #orderSummary .order-listings {
+            display: inline-block;
+            vertical-align: top;
+            width: calc(100% - 200px);
+        }
+
+        #orderSummary .order-listings table {
+            width: 100%;
+        }
+
+        #orderSummary .order-listings th {
+            text-align: left;
+        }
+
+        #orderSummary .order-listings td {
+            text-align: left;
+            vertical-align: top;
+            padding-top: 3px
+        }
+
+        #orderSummary .order-listings th:nth-child(1) {
+            width: 90px;
+        }
+
+        #orderSummary .order-listings th:nth-child(2) {
+            width: 200px;
+        }
+
+        #orderSummary .order-listings th:nth-child(4) {
+            width: 37px;
+        }
+
+        #orderSummary .order-listings th:nth-child(5) {
+            width: 60px;
+            text-align: right;
+        }
+
+        #orderSummary .order-listings th:nth-child(6) {
+            width: 30px;
+        }
+
+        #orderSummary .order-listings td:nth-child(5) {
+            text-align: right;
+        }
+
+        .seperator {
+            width: 100%;
+            display: block;
+            border: none;
+            margin: 14px 0 28px 0;
+            border-top: 20px solid #c2c2c2;
+        }
+
+        #orderSummary .checkbox {
+            border: 1px solid silver;
+            height: 20px;
+            width: 20px;
+            margin-left: 5px;
+            margin-top: -3px;
+        }
+
+        #orderSummary .actioned {
+            font-weight: bold;
+        }
+
+        #orderSummary .stamp {
+            border: 1px solid silver;
+            height: 37px;
+            width: 200px;
+            display: inline-block;
+            vertical-align: middle;
+            margin-top: -5px;
+            margin-left: 11px;
+        }
+
+        .page-break {
+            display: block;
+            page-break-after: always;
+        }
+
+        @media print {
+
+            #orderSummaryPage {
+                padding: 0;
+            }
+
+            .controls,
+            h1,
+            h3,
+            #selectFile,
+            #inputfile,
+            #viewfile,
+            #controls {
+                display: none;
+            }
+
+            .label {
+                border-color: transparent;
+            }
+
+            .function-container,
+            #labelListing,
+            #orderSummary {
+                padding: 0px;
+            }
+        }
+    </style>
+    <script>
+        var codes = {
+            "AF": "Afghanistan",
+            "AG": "Antigua and Barbuda",
+            "AI": "Anguilla",
+            "AM": "Armenia",
+            "AO": "Angola",
+            "AQ": "Antarctica",
+            "AR": "Argentina",
+            "AS": "American Samoa",
+            "AW": "Aruba",
+            "BB": "Barbados",
+            "BD": "Bangladesh",
+            "BF": "Burkina Faso",
+            "BI": "Burundi",
+            "BJ": "Benin",
+            "BL": "Saint Barthelemy",
+            "BM": "Bermuda",
+            "BN": "Brunei Darussalam",
+            "BO": "Bolivia",
+            "BQ": "Bonaire",
+            "BS": "Bahamas",
+            "BT": "Bhutan",
+            "BV": "Bouvet Island",
+            "BW": "Botswana",
+            "BZ": "Belize",
+            "CC": "Cocos (Keeling) Islands",
+            "CD": "Democratic Republic of the Congo",
+            "CF": "Central African Republic",
+            "CG": "Congo",
+            "CI": "Cote d'Ivoire",
+            "CK": "Cook Islands",
+            "CL": "Chile",
+            "CM": "Cameroon",
+            "CN": "China",
+            "CO": "Colombia",
+            "CU": "Cuba",
+            "CV": "Cape Verde",
+            "CW": "Curacao",
+            "CX": "Christmas Island",
+            "DJ": "Djibouti",
+            "DM": "Dominica",
+            "DZ": "Algeria",
+            "EC": "Ecuador",
+            "EG": "Egypt",
+            "EH": "Western Sahara",
+            "ER": "Eritrea",
+            "ET": "Ethiopia",
+            "FJ": "Fiji",
+            "FK": "Falkland Islands (Malvinas)",
+            "FM": "Micronesia, Federated States of",
+            "GA": "Gabon",
+            "GD": "Grenada",
+            "GF": "French Guiana",
+            "GG": "Guernsey",
+            "GH": "Ghana",
+            "GM": "Gambia",
+            "GN": "Guinea",
+            "GP": "Guadeloupe",
+            "GQ": "Equatorial Guinea",
+            "GS": "South Georgia and the South Sandwich Islands",
+            "GU": "Guam",
+            "GW": "Guinea-Bissau",
+            "GY": "Guyana",
+            "HK": "Hong Kong",
+            "HM": "Heard Island and McDonald�Islands",
+            "HN": "Honduras",
+            "HT": "Haiti",
+            "ID": "Indonesia",
+            "IM": "Isle of Man",
+            "IN": "India",
+            "IO": "British Indian Ocean Territory",
+            "IR": "Iran, Islamic Republic of",
+            "JE": "Jersey",
+            "JM": "Jamaica",
+            "JP": "Japan",
+            "KE": "Kenya",
+            "KG": "Kyrgyzstan",
+            "KH": "Cambodia",
+            "KI": "Kiribati",
+            "KM": "Comoros",
+            "KN": "Saint Kitts and Nevis",
+            "KP": "Korea, Democratic People's Republic of",
+            "KR": "Korea, Republic of",
+            "KY": "Cayman Islands",
+            "LA": "Lao People's Democratic Republic",
+            "LK": "Sri Lanka",
+            "LR": "Liberia",
+            "LS": "Lesotho",
+            "LY": "Libya",
+            "MC": "Monaco",
+            "MF": "Saint Martin (French part)",
+            "MG": "Madagascar",
+            "MH": "Marshall Islands",
+            "ML": "Mali",
+            "MM": "Myanmar",
+            "MN": "Mongolia",
+            "MO": "Macao",
+            "MP": "Northern Mariana Islands",
+            "MQ": "Martinique",
+            "MS": "Montserrat",
+            "MV": "Maldives",
+            "MW": "Malawi",
+            "MX": "Mexico",
+            "MY": "Malaysia",
+            "MZ": "Mozambique",
+            "NA": "Namibia",
+            "NC": "New Caledonia",
+            "NE": "Niger",
+            "NF": "Norfolk Island",
+            "NG": "Nigeria",
+            "NI": "Nicaragua",
+            "NP": "Nepal",
+            "NR": "Nauru",
+            "NU": "Niue",
+            "NZ": "New Zealand",
+            "OM": "Oman",
+            "PA": "Panama",
+            "PE": "Peru",
+            "PF": "French Polynesia",
+            "PG": "Papua New Guinea",
+            "PH": "Philippines",
+            "PM": "Saint Pierre and Miquelon",
+            "PN": "Pitcairn",
+            "PR": "Puerto Rico",
+            "PW": "Palau",
+            "PY": "Paraguay",
+            "RE": "Reunion",
+            "RU": "Russian Federation",
+            "RW": "Rwanda",
+            "SB": "Solomon Islands",
+            "SE": "Sweden",
+            "SG": "Singapore",
+            "SH": "Saint Helena",
+            "SJ": "Svalbard and Jan Mayen",
+            "SL": "Sierra Leone",
+            "SN": "Senegal",
+            "SO": "Somalia",
+            "SR": "Suriname",
+            "SS": "South Sudan",
+            "SX": "Sint Maarten (Dutch part)",
+            "SY": "Syrian Arab Republic",
+            "SZ": "Swaziland",
+            "TC": "Turks and Caicos Islands",
+            "TD": "Chad",
+            "TF": "French Southern Territories",
+            "TG": "Togo",
+            "TH": "Thailand",
+            "TJ": "Tajikistan",
+            "TK": "Tokelau",
+            "TM": "Turkmenistan",
+            "TO": "Tonga",
+            "TT": "Trinidad and Tobago",
+            "TV": "Tuvalu",
+            "TW": "Taiwan",
+            "TZ": "United Republic of Tanzania",
+            "UG": "Uganda",
+            "UM": "US Minor Outlying Islands",
+            "UY": "Uruguay",
+            "UZ": "Uzbekistan",
+            "VC": "Saint Vincent and the Grenadines",
+            "VE": "Venezuela",
+            "VI": "US Virgin Islands",
+            "VN": "Viet Nam",
+            "VU": "Vanuatu",
+            "WF": "Wallis and Futuna",
+            "WS": "Samoa",
+            "YE": "Yemen",
+            "YT": "Mayotte",
+            "ZA": "South Africa",
+            "ZM": "Zambia",
+            "ZW": "Zimbabwe",
+            "AD": "Andorra",
+            "AE": "United Arab Emirates",
+            "AL": "Albania",
+            "AT": "Austria",
+            "AU": "Australia",
+            "AZ": "Azerbaijan",
+            "BA": "Bosnia and Herzegovina",
+            "BE": "Belgium",
+            "BG": "Bulgaria",
+            "BH": "Bahrain",
+            "BR": "Brazil",
+            "BY": "Belarus",
+            "CA": "Canada",
+            "CH": "Switzerland",
+            "CR": "Costa Rica",
+            "CY": "Cyprus",
+            "CZ": "Czechia",
+            "DE": "Germany",
+            "DK": "Denmark",
+            "DO": "Dominican Republic",
+            "EE": "Estonia",
+            "ES": "Spain",
+            "FI": "Finland",
+            "FO": "Faroe Islands",
+            "FR": "France",
+            "GB": "United Kingdom",
+            "GE": "Georgia",
+            "GI": "Gibraltar",
+            "GL": "Greenland",
+            "GR": "Greece",
+            "GT": "Guatemala",
+            "HR": "Croatia",
+            "HU": "Hungary",
+            "IE": "Ireland",
+            "IL": "Israel",
+            "IQ": "Iraq",
+            "IS": "Iceland",
+            "IT": "Italy",
+            "JO": "Jordan",
+            "KW": "Kuwait",
+            "KZ": "Kazakhstan",
+            "LB": "Lebanon",
+            "LC": "Saint Lucia",
+            "LI": "Liechtenstein",
+            "LT": "Lithuania",
+            "LU": "Luxembourg",
+            "LV": "Latvia",
+            "MC": "Monaco",
+            "MD": "Moldova",
+            "ME": "Montenegro",
+            "MK": "Macedonia",
+            "MR": "Mauritania",
+            "MT": "Malta",
+            "MU": "Mauritius",
+            "NL": "Netherlands",
+            "NO": "Norway",
+            "PK": "Pakistan",
+            "PL": "Poland",
+            "PS": "Palestine",
+            "PT": "Portugal",
+            "QA": "Qatar",
+            "RO": "Romania",
+            "RS": "Serbia",
+            "SA": "Saudi Arabia",
+            "SC": "Seychelles",
+            "SE": "Sweden",
+            "SI": "Slovenia",
+            "SK": "Slovakia",
+            "SM": "San Marino",
+            "ST": "Sao Tome and Principe",
+            "SV": "El Salvador",
+            "TL": "Timor-Leste",
+            "TN": "Tunisia",
+            "TR": "Turkey",
+            "UA": "Ukraine",
+            "US": "USA",
+            "VA": "Vatican City State",
+            "VG": "Virgin Islands",
+            "XK": "Kosovo",
+        }
+        $(document).ready(function () {
+
+            var fnc = {
+                finalFileProcess: "",
+                init: function () {
+                    $("#inputfile").change(function () {
+                        $("#viewfile").removeClass("disabledButton")
+                        $("#selectFile").html($("#inputfile")[0].files[0].name)
+                    })
+                    $("#selectFile").click(function () {
+                        $("#inputfile").val("")
+                        $("#inputfile").trigger("click");
+                        $("#selectFile").html("Choose File")
+                    })
+                    $("#viewfile").click(function () {
+
+                        var rdr = new FileReader();
+                        rdr.readAsText($("#inputfile")[0].files[0]);
+
+                        rdr.onload = function (e) {
+                            var replacinglr = e.target.result.replace(/\n/g, "");
+                            var removeCommas = "";
+                            var quoteOpen = false;
+                            for (i = 0; i < replacinglr.length; i++) {
+                                if (replacinglr[i] == '"') {
+                                    if (quoteOpen) {
+                                        quoteOpen = false
+                                    } else {
+                                        quoteOpen = true;
+                                    }
+                                }
+                                if (quoteOpen) {
+                                    if (replacinglr[i] != ',') {
+                                        if (replacinglr[i] != "\r") {
+                                            removeCommas += replacinglr[i];
+                                        } else {
+                                            var previous = removeCommas.substring(removeCommas.length - 4, removeCommas.length)
+                                            if (previous != "<br>") {
+                                                removeCommas += "<br>";
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    removeCommas += replacinglr[i];
+                                }
+                            }
+
+                            if (/\r/g.test(removeCommas[removeCommas.length - 1])) {
+                                removeCommas = removeCommas.substring(0, removeCommas.length - 1)
+                            }
+
+                            var rows = removeCommas.split("\r");
+                            var joinBackTogether = new Array();
+                            rows.map(function (element) {
+                                if (element.slice(0, 4) != "<br>") {
+                                    joinBackTogether.push(element);
+                                } else {
+                                    joinBackTogether[joinBackTogether.length - 1] += element;
+                                }
+                            })
+                            var columnSplit = new Array();
+                            joinBackTogether.map(function (row, index) {
+                                columnSplit.push(row.split(","));
+                            });
+                            fnc.finalFileProcess = columnSplit;
+                            fnc.initialDateselection();
+                        }
+                    })
+
+                },
+                datepickerChangeEvent: function () {
+                    $("#dateFrom").on("change", function () {
+                        $(".menu").find(".active").children().trigger("click")
+                    })
+                    $("#dateTo").on("change", function () {
+                        $(".menu").find(".active").children().trigger("click")
+                    })
+                },
+                initialDateselection: function () {
+                    $("#currentFile").html($("#inputfile")[0].files[0].name)
+                    $("#selectFile").html("Choose File")
+
+                    if ($("#controls").hasClass("control-after")) {
+                        fnc.dateFilter();
+                        fnc.datepickerChangeEvent();
+                        $(".menu").find(".active").children().trigger("click")
+                        //page.labels();
+                        $(".upload-window").removeClass("open-upload-window")
+                    } else {
+                        fnc.dateFilter();
+                        $(".upload-window").css("display", "none")
+                        $("#dateselection").css("display", "block")
+
+                        $("#dateselectionbtn").on("click", function () {
+                            $(".upload-window").removeAttr("style")
+                            $("#dateselection").removeAttr("style").addClass("notFirstTime")
+                            // $("#currentFile").html($("#inputfile")[0].files[0].name)
+                            // $("#selectFile").html("Choose File")
+                            $("#controls").removeClass("controls")
+                            $("#controls").addClass("control-after")
+                            $("body").addClass("interface")
+                            fnc.datepickerChangeEvent();
+                            fnc.navigation();
+
+                            //fnc.reset();
+                            page.labels();
+
+                            //page.masterFile()
+                            //page.sageSummary();
+                            //page.despatchNotes()
+                            //page.despatchItemSummary()
+                        })
+                    }
+
+                },
+                navigationReset: function (what) {
+                    $(".menu li").each(function () {
+                        $(this).removeClass("active");
+                    })
+                    $(".function-container").each(function () {
+                        $(this).css("display", "none")
+                    })
+                    $(what).parent("li").addClass("active")
+                },
+                navigation: function () {
+                    $(document).on("click", function (e) {
+                        if (!$(e.target).is('.upload-window, .upload-window *')) {
+                            $(".upload-window").removeClass("open-upload-window");
+                        }
+                    })
+                    $("#itemSum").click(function () {
+                        fnc.navigationReset(this);
+                        $("#itemSumm").removeAttr("style")
+                        page.despatchItemSummary();
+                    })
+                    $("#orderSum").click(function () {
+                        fnc.navigationReset(this);
+                        $("#orderSummary").removeAttr("style")
+                        page.despatchNotes();
+                    })
+                    $("#masterFile").click(function () {
+                        fnc.navigationReset(this);
+                        $("#master").removeAttr("style")
+                        page.masterFile();
+                    })
+                    $("#labels").click(function () {
+                        fnc.navigationReset(this);
+                        $("#labelListing").removeAttr("style")
+                        page.labels();
+                    })
+                    $("#item").click(function () {
+                        fnc.navigationReset(this);
+                        $("#baseItem").removeAttr("style")
+                        page.sageSummary();
+                    })
+                    $("#openDateFilter").click(function (e) {
+                        $(this).toggleClass("openDateFilteron");
+                        $("#dateselection").toggleClass("showDateDropdowns");
+                        e.stopPropagation();
+                    })
+                    $("#openDropdown").click(function (e) {
+                        $(".upload-window").toggleClass("open-upload-window");
+                        e.stopPropagation();
+                    })
+                },
+                dateCheck: function (dateCheck) {
+                    var $from = $("#dateFrom").val();
+                    var $to = $("#dateTo").val();
+                    var result = true;
+
+                    if ($from != "") {
+                        var from = new Date($from);
+                        if (dateCheck < from) {
+                            result = false;
+                        }
+                    }
+                    if ($to != "") {
+                        var to = new Date($to);
+                        to = to.setDate(to.getDate() + 1);
+                        if (dateCheck >= to) {
+                            result = false;
+                        }
+                    }
+
+                    return result;
+                },
+                dateConversion: function (date, format) {
+                    var month = '' + (date.getMonth() + 1),
+                        day = '' + date.getDate(),
+                        year = date.getFullYear();
+
+                    if (month.length < 2)
+                        month = '0' + month;
+                    if (day.length < 2)
+                        day = '0' + day;
+
+                    if (format == "UK") {
+                        return [day, month, year].join('/');
+                    } else {
+                        return [year, month, day].join('-');
+                    }
+
+                },
+                dateFilter: function () {
+                    var $dateFrom = $("#dateFrom"),
+                        $dateTo = $("#dateTo")
+
+                    var dates = new Array();
+                    fnc.finalFileProcess.map(function (ele, index) {
+                        if (index != 0) {
+                            dates.push(new Date(ele[2].replace(/"/g, "")))
+                        }
+                    })
+                    var maximumDate = new Date(Math.max.apply(null, dates));
+                    var minimumDate = new Date(Math.min.apply(null, dates));
+
+                    var max = fnc.dateConversion(maximumDate);
+                    var min = fnc.dateConversion(minimumDate)
+
+                    $dateFrom.val("")
+                    $dateFrom.attr("max", max)
+                    $dateFrom.attr("min", min)
+                    $dateTo.val("")
+                    $dateTo.attr("max", max)
+                    $dateTo.attr("min", min)
+
+                },
+                copy: function () {
+                    var el = document.getElementById("itemBreakdownTable");
+                    var range = document.createRange();
+                    range.selectNodeContents(el);
+                    var sel = window.getSelection();
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                    document.execCommand('copy');
+                    alert("Contents copied to clipboard.");
+                },
+                codeMatch: function (code) {
+                    var upper = code.toUpperCase()
+                    var changed = code;
+                    if (/^CD/.test(upper)) { changed = "CD"; }
+                    if (/^CUT/.test(upper)) { changed = "CUT"; }
+                    if (/^COVER/.test(upper)) { changed = "COVER"; }
+                    if (/^AEROMODELLER/.test(upper) || /^AM/.test(upper) || /^AEROMOD/.test(upper) || /^AEROM/.test(upper)) { changed = "AEROMODELLER"; }
+                    if (/^DZ/.test(upper)) { changed = "DRONEZONE"; }
+                    if (/BINDER/.test(upper)) { changed = "BINDERS"; }
+                    if (/^FSM/.test(upper)) { changed = "FSM"; }
+                    if (/^MAI/.test(upper) || /MAI$/.test(upper)) { changed = "MAI"; }
+                    if (/^MIM/.test(upper)) { changed = "MIM"; }
+                    if (/^MMI/.test(upper)) { changed = "MMI"; }
+                    if (/^MODELFLYER/.test(upper) || /^FLYER/.test(upper)) { changed = "FLYER"; }
+                    if (/^PLAN/.test(upper)) { changed = "PLAN"; }
+                    if (/^RACER/.test(upper)) { changed = "RACER"; }
+                    if (/^SLOT/.test(upper)) { changed = "SLOT"; }
+                    if (/^TMMI/.test(upper)) { changed = "TMMI"; }
+                    return changed;
+                },
+                reset: function () {
+                    $(".menu li").each(function () {
+                        $(this).removeClass("active");
+                    })
+                    $("#labels").parent("li").addClass("active")
+
+                    $("#master").remove();
+                    $("#labelListing").remove();
+                    $("#baseItem").remove();
+                    $("#orderSummary").remove();
+                    $("#itemSumm").remove();
+                    $("#viewfile").addClass("disabledButton");
+                    $("#inputfile").val("")
+                }
+            }
+            var page = {
+                masterFile: function () {
+                    $("#master").remove();
+                    $("body").append("<div id=\"master\" class=\"function-container\"></div>");
+                    var allTable = '<table cellpadding=\"0\" cellspacing=\"0\"><thead><tr>';
+                    for (i = 0; i < fnc.finalFileProcess[0].length; i++) {
+                        allTable += '<th>' + fnc.finalFileProcess[0][i] + '</th>';
+                    }
+                    allTable += "</tr></thead>";
+                    allTable += "<tbody>";
+                    fnc.finalFileProcess.map(function (row, index) {
+                        if (index != 0) {
+                            allTable += "<tr>";
+                            row.map(function (column) {
+                                allTable += "<td>" + column + "</td>";
+                            })
+                            allTable += "</tr>";
+                        }
+                    })
+                    $("#master").prepend(allTable + "</tbody></table>")
+                },
+                labels: function () {
+                    $("#labelListing").remove();
+                    $("body").append("<div id=\"labelListing\" class=\"function-container\"></div>");
+                    var labels;
+                    var count = 0;
+                    var whichContainer = 1;
+                    fnc.finalFileProcess.map(function (row, index) {
+                        var newDate = new Date(row[2].replace(/"/g, ""));
+                        var dateCheck = fnc.dateCheck(newDate);
+
+                        if (index != 0 && dateCheck) {
+                            var country = "";
+                            if (row[19] != "GB") {
+                                var country = codes[row[19]];
+                                if (typeof country === "undefined") {
+                                    country = row[19];
+                                }
+                            }
+                            if (count == 0) {
+                                $("#labelListing").append('<div class="container container-' + whichContainer + '"></div><div class="page-break"></div>');
+                            }
+                            count++;
+                            var label = '<div class="label"><div class="inner-label">';
+                            label += '<span>' + row[13] +
+                                '</span><span>' + row[14] +
+                                '</span><span>' + row[15] +
+                                '</span><span>' + row[16] +
+                                '</span><span>' + row[17] +
+                                '</span><span>' + row[18] +
+                                '</span><span>' + country + '</span>';
+                            label += '</div></div>';
+                            label = label.replace(/"/g, "");
+                            $(".container-" + whichContainer).append(label)
+                            if (count >= 21) {
+                                whichContainer++;
+                                count = 0;
+                            }
+                        }
+
+                    })
+                },
+                sageSummary: function () {
+                    $("#baseItem").remove();
+                    $("body").append("<div id=\"baseItem\" class=\"function-container\"></div>")
+                    var table = "<button id=\"copyTable\">Copy Table</button><table cellpadding=\"0\" cellspacing=\"0\" id=\"itemBreakdownTable\"><thead><th>Date</th><th>Name</th><th>Post Code</th><th>Product Code</th><th>Qty</th><th>Price</th><th>Unit</th><th>Match</th></thead><tbody>"
+                    fnc.finalFileProcess.map(function (ele, index) {
+                        var newDate = new Date(ele[2].replace(/"/g, ""));
+                        var dateCheck = fnc.dateCheck(newDate);
+
+                        if (index != 0 && ele[0] != "" && dateCheck) {
+                            var cleanup = ele[11].replace(/"/g, "");
+                            var items = cleanup.split("<br>"); /* Issue split here*/
+                            var date = ele[2];
+                            var name = ele[13];
+                            var postCode = ele[18];
+                            var shipping = ele[6];
+
+                            var formatter = new Intl.NumberFormat('en-US', {
+                                style: 'currency',
+                                currency: 'GBP',
+                            });
+
+                            if (shipping == "") {
+                                shipping = formatter.format(0);
+                            } else {
+                                shipping = formatter.format(shipping)
+                            }
+                            items.map(function (element) {
+
+                                var price = element.substr(element.lastIndexOf("*"), element.length)
+                                price = price.replace("* ", "")
+                                priceUnit = price.split(" ")
+
+                                var qty = (element.substr(element.lastIndexOf(":") + 1)).split("*")
+                                qty = qty[0].replace(" ", "")
+
+                                var pcode = element.substr(1);
+                                var secondBracket = pcode.indexOf("]");
+                                pcode = element.substr(0, secondBracket + 1)
+                                pcode = pcode.replace("[", "");
+
+                                var match = fnc.codeMatch(pcode.trim());
+
+                                table += "<tr><td>" + date +
+                                    "</td><td>" + name +
+                                    "</td><td>" + postCode +
+                                    "</td><td>" + pcode +
+                                    "</td><td>" + qty +
+                                    "</td><td>" + priceUnit[0] +
+                                    "</td><td>" + priceUnit[1] +
+                                    "</td><td>" + match + "</td></tr>"
+                            })
+                            table += "<tr><td>" + date +
+                                "</td><td>" + name +
+                                "</td><td>" + postCode +
+                                "</td><td>Shipping</td><td>0" +
+                                "</td><td>" + shipping.replace(/£/, "") +
+                                "</td><td>" + priceUnit[1] +
+                                "</td><td>SHIPPING</td</tr>";
+                        }
+                    })
+                    table += "</tbody></table>";
+                    $("#baseItem").append(table.replace(/"/g, ""))
+                    $("#copyTable").click(function () {
+                        fnc.copy();
+                    })
+                },
+                despatchNotes: function () {
+                    $("#orderSummary").remove();
+                    $("body").append("<div id=\"orderSummary\" class=\"function-container\"><div id=\"orderSummaryPage\"></div>");
+
+                    var baseTable = "<div class=\"master-table\">"
+
+                    fnc.finalFileProcess.map(function (row, index) {
+                        /* Date */
+                        var newDate = new Date(row[2].replace(/"/g, ""));
+                        var dateCheck = fnc.dateCheck(newDate);
+
+                        if (index != 0 && dateCheck == true) {
+                            /* Address */
+                            var country = "";
+                            if (row[19] != "GB") {
+                                var country = codes[row[19]];
+                                if (typeof country === "undefined") {
+                                    country = row[19];
+                                }
+                            }
+                            var address = '<div class="address"><strong>Name &amp; Address</strong>' +
+                                '<span>' + row[13] +
+                                '</span><span>' + row[14] +
+                                '</span><span>' + row[15] +
+                                '</span><span>' + row[16] +
+                                '</span><span>' + row[17] +
+                                '</span><span>' + row[18] +
+                                '</span><span>' + country + '</span>';
+                            address += '</div>';
+                            address = address.replace(/"/g, "");
+
+                            var date = "<strong>DATE: " + fnc.dateConversion(newDate, "UK") + "</strong>";
+
+                            /* Products */
+                            var cleanup = row[11].replace(/"/g, "");
+                            var items = cleanup.split("<br>"); /* Issue split here*/
+                            var productTable = "<div class=\"order-listings\"><table><thead><th>Line [" + items.length +
+                                "]</th><th>Code</th><th>Description</th><th>Qty</th><th>Price</th><th></th><thead><tbody>"
+                            items.map(function (element, index) {
+
+                                var price = element.substr(element.lastIndexOf("*"), element.length)
+                                price = price.replace("* ", "")
+                                priceUnit = price.split(" ")
+
+                                var qty = (element.substr(element.lastIndexOf(":") + 1)).split("*")
+                                qty = qty[0].replace(" ", "")
+
+                                var pcode = element.substr(1);
+                                var secondBracket = pcode.indexOf("]");
+                                pcode = element.substr(0, secondBracket + 1)
+                                pcode = pcode.replace("[", "");
+
+                                var pdesc = element.substring(secondBracket + 2, element.lastIndexOf(":"));
+                                productTable += "<tr><td>Line " + (index + 1) +
+                                    "</td><td>" + pcode.trim() +
+                                    "</td><td>" + pdesc +
+                                    "</td><td>" + qty +
+                                    "</td><td>£" + priceUnit[0] +
+                                    "</td><td><div class=\"checkbox\"></div>"
+                                "</td></tr>";
+                            })
+                            productTable += "<tr><td colspan=\"3\" style=\"text-align: right\">Total</td><td colspan=\"4\">" + row[10] + "</td></tr></tbody></table></div>"
+
+                            /* Order Construction */
+
+                            baseTable += "<div class=\"order\"><div class=\"date\">" + date + "</div>" + address +
+                                productTable +
+                                "<div class=\"actioned\">Date Actioned<div class=\"stamp\"></div></div><hr class=\"seperator\"></div>";
+
+                        }
+
+                    })
+
+                    $("#orderSummaryPage").append(baseTable + "</div>")
+                },
+                despatchItemSummary: function () {
+                    $("#itemSumm").remove();
+                    $("body").append("<div id=\"itemSumm\" class=\"function-container\"></div>")
+                    var products = {}
+
+                    fnc.finalFileProcess.map(function (ele, index) {
+
+                        var newDate = new Date(ele[2].replace(/"/g, ""));
+                        var dateCheck = fnc.dateCheck(newDate);
+
+                        if (index != 0 && ele[0] != "" && dateCheck) {
+                            var cleanup = ele[11].replace(/"/g, "");
+                            var items = cleanup.split("<br>");/* Issue split here*/
+                            var date = ele[2];
+                            var name = ele[13];
+                            var postCode = ele[18];
+                            items.map(function (element) {
+
+                                var qty = (element.substr(element.lastIndexOf(":") + 1)).split("*")
+                                qty = qty[0].replace(" ", "")
+                                qty = parseInt(qty);
+
+                                var pcode = element.substr(1);
+                                var secondBracket = pcode.indexOf("]");
+                                pcode = element.substr(0, secondBracket + 1)
+                                pcode = pcode.replace("[", "");
+                                pcode = pcode.trim();
+
+                                var pdesc = element.substring(secondBracket + 2, element.lastIndexOf(":"))
+
+                                if (typeof products[pcode] == "undefined") {
+                                    products[pcode] = [pdesc, qty]
+                                } else {
+                                    products[pcode][1] = products[pcode][1] + qty;
+                                }
+
+                            })
+                        }
+                    })
+                    var table = "<table cellpadding=\"0\" cellspacing=\"0\">"
+                    table += "<thead><tr><th>Product Code</th><th>Description</th><th>Qty</th></thead><tbody>"
+                    for (var key in products) {
+                        if (products.hasOwnProperty(key)) {
+                            var subscription = RegExp("SUBSCRIPTION");
+                            var subscribe = RegExp("SUBSCRIBE");
+                            var renew = RegExp("RENEW");
+                            var upper = products[key][0].toUpperCase()
+
+                            if (subscription.test(upper) == false && subscribe.test(upper) == false && renew.test(upper) == false) {
+                                table += "<tr data-qty=\"" + products[key][1] + "\"><td>" + key +
+                                    "</td><td>" + products[key][0] +
+                                    "</td><td>" + products[key][1] +
+                                    "</td></tr>";
+                            }
+
+                        }
+                    }
+                    table += "</tbody></table>";
+                    $("#itemSumm").append(table);
+
+                    var $table = $('#itemSumm').find("tbody");
+
+                    var rows = $table.find('tr').get();
+                    rows.sort(function (a, b) {
+                        var keyA = $(a).data('qty');
+                        var keyB = $(b).data('qty');
+                        if (keyA < keyB) return 1;
+                        if (keyA > keyB) return -1;
+                        return 0;
+                    });
+                    $.each(rows, function (index, row) {
+                        $table.append(row);
+                    });
+                }
+            }
+
+            fnc.init();
+        }
+
+        )
+    </script>
+</head>
+
+<body>
+    <div class="controls" id="controls">
+
+
+
+        <div class="menu-container">
+            <div class="image">
+                <img src="data:image/jpeg;base64,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"
+                    alt="">
+            </div>
+            <ul class="menu">
+                <li class="active"><a href="#" id="labels">Labels</a></li>
+                <li><a href="#" id="orderSum">Despatch Notes</a></li>
+                <li><a href="#" id="itemSum">Despatch Item Summary</a></li>
+                <li><a href="#" id="masterFile">Master File</a></li>
+                <li><a href="#" id="item">Sage Summary</a></li>
+            </ul>
+            <div id="openDateFilter">Date Filter</div>
+            <div id="openDropdown">Upload CSV</div>
+            <div id="currentFile"></div>
+
+        </div>
+        <div id="dateselection">
+            <h1>Please select a date range</h1>
+            <h3>leave blank to select entire file or choose dates</h3>
+            <label for="dateFrom">From:</label>
+            <input type="date" id="dateFrom">
+            <label for="dateTo">To:</label>
+            <input type="date" id="dateTo">
+            <button id="dateselectionbtn">Confirm</button>
+        </div>
+        <div class="upload-window">
+            <h1>Upload a File</h1>
+            <h3>Please click 'Choose File' and select a csv file</h3>
+            <button id="selectFile">Choose File</button>
+            <input type="file" id="inputfile" accept=".csv">
+            <input type="button" id="viewfile" class="disabledButton" value="Import File">
+        </div>
+
+    </div>
+</body>
+
+</html>
